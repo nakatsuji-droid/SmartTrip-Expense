@@ -1,0 +1,5 @@
+{
+  "name": "SmartTrip Expense",
+  "description": "金額ベースで簡単に入力できるAI搭載型の出張精算アプリケーション。レシート画像の解析やテキスト入力からの自動入力をサポートします。",
+  "requestFramePermissions": []
+}
