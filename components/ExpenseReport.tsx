@@ -40,14 +40,15 @@ export const ExpenseReport: React.FC<ExpenseReportProps> = ({ expenses, userProf
   const handleDownloadPDF = () => {
     setIsGenerating(true);
     const element = document.getElementById('printable-area');
-    
+
     // Configure html2pdf options
     const opt = {
       margin: 0, // We handle margins via CSS padding in the container
       filename: `${pdfFileName}.pdf`,
       image: { type: 'jpeg', quality: 0.98 },
       html2canvas: { scale: 2, useCORS: true, logging: false },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      pagebreak: { mode: ['css', 'legacy'], before: '.html2pdf__page-break' }
     };
 
     // Generate and save
@@ -62,7 +63,7 @@ export const ExpenseReport: React.FC<ExpenseReportProps> = ({ expenses, userProf
 
   // Derive summary info
   const totalAmount = sortedExpenses.reduce((sum, item) => sum + item.amount, 0);
-  
+
   // Actual Cost Total (実費合計): Only Transportation
   const actualCostTotal = sortedExpenses.reduce((sum, item) => {
     if (item.category === ExpenseCategory.TRANSPORTATION) {
@@ -169,7 +170,7 @@ export const ExpenseReport: React.FC<ExpenseReportProps> = ({ expenses, userProf
 
       {/* Controls */}
       <div className="no-print max-w-4xl mx-auto px-4 py-4 flex justify-between items-center relative z-50">
-        <button 
+        <button
           type="button"
           onClick={onBack}
           className="cursor-pointer px-4 py-2 bg-white border border-slate-300 text-slate-700 rounded-md hover:bg-slate-50 font-medium active:scale-95 transition-transform"
@@ -177,7 +178,7 @@ export const ExpenseReport: React.FC<ExpenseReportProps> = ({ expenses, userProf
           ← 戻る
         </button>
         <div className="flex gap-2">
-          <button 
+          <button
             type="button"
             onClick={handlePrint}
             className="cursor-pointer flex items-center gap-2 px-4 py-2 bg-white border border-slate-300 text-slate-700 rounded-md hover:bg-slate-50 font-medium shadow-sm active:scale-95 transition-transform"
@@ -185,7 +186,7 @@ export const ExpenseReport: React.FC<ExpenseReportProps> = ({ expenses, userProf
             <Printer size={16} />
             印刷
           </button>
-          <button 
+          <button
             type="button"
             onClick={handleDownloadPDF}
             disabled={isGenerating}
@@ -204,8 +205,8 @@ export const ExpenseReport: React.FC<ExpenseReportProps> = ({ expenses, userProf
           return (
             <div
               key={pageIndex}
-              className="max-w-[210mm] mx-auto bg-white p-[10mm] shadow-lg print:shadow-none print:p-0 print:w-full print:max-w-none mb-8 print:mb-0"
-              style={pageIndex > 0 ? { pageBreakBefore: 'always' } : {}}
+              className={`max-w-[210mm] mx-auto bg-white p-[10mm] shadow-lg print:shadow-none print:p-0 print:w-full print:max-w-none mb-8 print:mb-0${pageIndex > 0 ? ' html2pdf__page-break' : ''}`}
+              style={pageIndex > 0 ? { pageBreakBefore: 'always', breakBefore: 'page' } : {}}
             >
               <div className="text-black print:text-black font-serif text-sm">
 
