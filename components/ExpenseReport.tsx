@@ -203,143 +203,147 @@ export const ExpenseReport: React.FC<ExpenseReportProps> = ({ expenses, userProf
         {pages.map((pageItems, pageIndex) => {
           const isLastPage = pageIndex === pages.length - 1;
           return (
-            <div
-              key={pageIndex}
-              className={`max-w-[210mm] mx-auto bg-white p-[10mm] shadow-lg print:shadow-none print:p-0 print:w-full print:max-w-none mb-8 print:mb-0${pageIndex > 0 ? ' html2pdf__page-break' : ''}`}
-              style={pageIndex > 0 ? { pageBreakBefore: 'always', breakBefore: 'page' } : {}}
-            >
-              <div className="text-black print:text-black font-serif text-sm">
+            <React.Fragment key={pageIndex}>
+              {/* ページ間に改ページ用の空divを挿入（html2pdfが認識する正式な方法） */}
+              {pageIndex > 0 && (
+                <div className="html2pdf__page-break" style={{ pageBreakBefore: 'always', breakBefore: 'page' }} />
+              )}
+              <div
+                className="max-w-[210mm] mx-auto bg-white p-[10mm] shadow-lg print:shadow-none print:p-0 print:w-full print:max-w-none mb-8 print:mb-0"
+              >
+                <div className="text-black print:text-black font-serif text-sm">
 
-                <div className="text-right mb-4 !text-black">No. ____________</div>
+                  <div className="text-right mb-4 !text-black">No. ____________</div>
 
-                <h1 className="text-2xl font-bold text-center mb-8 tracking-widest border-b-2 border-transparent !text-black">出張経費精算書</h1>
+                  <h1 className="text-2xl font-bold text-center mb-8 tracking-widest border-b-2 border-transparent !text-black">出張経費精算書</h1>
 
-                {/* Header Section */}
-                <div className="flex justify-between items-end mb-4 border-b !border-black pb-2">
-                  <div className="space-y-2 !text-black">
-                    <div>申請日： {applicationDateStr}</div>
-                    <div>申請者： {userProfile.name}</div>
-                    {pages.length > 1 && (
-                      <div className="text-xs text-gray-500">（{pageIndex + 1} / {pages.length} ページ）</div>
-                    )}
+                  {/* Header Section */}
+                  <div className="flex justify-between items-end mb-4 border-b !border-black pb-2">
+                    <div className="space-y-2 !text-black">
+                      <div>申請日： {applicationDateStr}</div>
+                      <div>申請者： {userProfile.name}</div>
+                      {pages.length > 1 && (
+                        <div className="text-xs text-gray-500">（{pageIndex + 1} / {pages.length} ページ）</div>
+                      )}
+                    </div>
+                    <div className="border !border-black w-48 h-16 flex">
+                      <div className="flex-1 border-r !border-black"></div>
+                      <div className="flex-1 border-r !border-black"></div>
+                      <div className="flex-1"></div>
+                    </div>
                   </div>
-                  <div className="border !border-black w-48 h-16 flex">
-                    <div className="flex-1 border-r !border-black"></div>
-                    <div className="flex-1 border-r !border-black"></div>
-                    <div className="flex-1"></div>
-                  </div>
-                </div>
 
-                <p className="mb-2 !text-black">出張経費について下記の通り申請致します</p>
+                  <p className="mb-2 !text-black">出張経費について下記の通り申請致します</p>
 
-                {/* Summary Box */}
-                <table className="w-full border-collapse border !border-black mb-6 !text-black">
-                  <thead className="bg-gray-200 print:bg-gray-200">
-                    <tr>
-                      <th colSpan={2} className="border !border-black py-1 font-bold !text-black">出張内容</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td className="border !border-black p-1 w-24 bg-gray-100 print:bg-gray-100 font-medium !text-black">出張先</td>
-                      <td className="border !border-black p-1 !text-black">{destinations}</td>
-                    </tr>
-                    <tr>
-                      <td className="border !border-black p-1 bg-gray-100 print:bg-gray-100 font-medium !text-black">出張期間</td>
-                      <td className="border !border-black p-1 !text-black">{tripDates}</td>
-                    </tr>
-                    <tr>
-                      <td className="border !border-black p-1 bg-gray-100 print:bg-gray-100 font-medium !text-black">出張目的</td>
-                      <td className="border !border-black p-1 !text-black">商談、営業、支援</td>
-                    </tr>
-                  </tbody>
-                </table>
+                  {/* Summary Box */}
+                  <table className="w-full border-collapse border !border-black mb-6 !text-black">
+                    <thead className="bg-gray-200 print:bg-gray-200">
+                      <tr>
+                        <th colSpan={2} className="border !border-black py-1 font-bold !text-black">出張内容</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td className="border !border-black p-1 w-24 bg-gray-100 print:bg-gray-100 font-medium !text-black">出張先</td>
+                        <td className="border !border-black p-1 !text-black">{destinations}</td>
+                      </tr>
+                      <tr>
+                        <td className="border !border-black p-1 bg-gray-100 print:bg-gray-100 font-medium !text-black">出張期間</td>
+                        <td className="border !border-black p-1 !text-black">{tripDates}</td>
+                      </tr>
+                      <tr>
+                        <td className="border !border-black p-1 bg-gray-100 print:bg-gray-100 font-medium !text-black">出張目的</td>
+                        <td className="border !border-black p-1 !text-black">商談、営業、支援</td>
+                      </tr>
+                    </tbody>
+                  </table>
 
-                {/* Detail Table */}
-                <table className="w-full border-collapse border !border-black text-center mb-0 !text-black">
-                  <thead>
-                    <tr className="bg-gray-200 print:bg-gray-200">
-                      <th colSpan={7} className="border !border-black py-1 !text-black">出張旅費内訳</th>
-                    </tr>
-                    <tr className="bg-gray-100 print:bg-gray-100 text-xs">
-                      <th className="border !border-black p-1 w-24 !text-black">日付</th>
-                      <th className="border !border-black p-1 !text-black">訪問先</th>
-                      <th className="border !border-black p-1 w-20 !text-black">交通手段</th>
-                      <th className="border !border-black p-1 w-24 !text-black">交通費</th>
-                      <th className="border !border-black p-1 w-24 !text-black">宿泊費</th>
-                      <th className="border !border-black p-1 w-24 !text-black">日当</th>
-                      <th className="border !border-black p-1 w-24 !text-black">計</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {pageItems.map((item) => {
-                      const d = item.date ? new Date(item.date) : null;
-                      const dateStr = d ? `${d.getMonth() + 1}月${d.getDate()}日` : '';
+                  {/* Detail Table */}
+                  <table className="w-full border-collapse border !border-black text-center mb-0 !text-black">
+                    <thead>
+                      <tr className="bg-gray-200 print:bg-gray-200">
+                        <th colSpan={7} className="border !border-black py-1 !text-black">出張旅費内訳</th>
+                      </tr>
+                      <tr className="bg-gray-100 print:bg-gray-100 text-xs">
+                        <th className="border !border-black p-1 w-24 !text-black">日付</th>
+                        <th className="border !border-black p-1 !text-black">訪問先</th>
+                        <th className="border !border-black p-1 w-20 !text-black">交通手段</th>
+                        <th className="border !border-black p-1 w-24 !text-black">交通費</th>
+                        <th className="border !border-black p-1 w-24 !text-black">宿泊費</th>
+                        <th className="border !border-black p-1 w-24 !text-black">日当</th>
+                        <th className="border !border-black p-1 w-24 !text-black">計</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {pageItems.map((item) => {
+                        const d = item.date ? new Date(item.date) : null;
+                        const dateStr = d ? `${d.getMonth() + 1}月${d.getDate()}日` : '';
 
-                      let transportCost = '';
-                      let accomCost = '';
-                      let dailyAllowance = '';
+                        let transportCost = '';
+                        let accomCost = '';
+                        let dailyAllowance = '';
 
-                      if (item.amount > 0) {
-                        if (item.category === ExpenseCategory.ACCOMMODATION) {
-                          accomCost = item.amount.toLocaleString();
-                        } else if (item.category === ExpenseCategory.ALLOWANCE) {
-                          dailyAllowance = item.amount.toLocaleString();
-                        } else if (item.category === ExpenseCategory.TRANSPORTATION) {
-                          transportCost = item.amount.toLocaleString();
-                        } else {
-                          transportCost = item.amount.toLocaleString();
+                        if (item.amount > 0) {
+                          if (item.category === ExpenseCategory.ACCOMMODATION) {
+                            accomCost = item.amount.toLocaleString();
+                          } else if (item.category === ExpenseCategory.ALLOWANCE) {
+                            dailyAllowance = item.amount.toLocaleString();
+                          } else if (item.category === ExpenseCategory.TRANSPORTATION) {
+                            transportCost = item.amount.toLocaleString();
+                          } else {
+                            transportCost = item.amount.toLocaleString();
+                          }
                         }
-                      }
 
-                      return (
-                        <tr key={item.id} className="h-8">
-                          <td className="border !border-black p-1 !text-black">{dateStr}</td>
-                          <td className="border !border-black p-1 text-left px-2 !text-black">{item.description}</td>
-                          <td className="border !border-black p-1 !text-black">{item.transportMethod}</td>
-                          <td className="border !border-black p-1 text-right px-2 !text-black">{transportCost}</td>
-                          <td className="border !border-black p-1 text-right px-2 !text-black">{accomCost}</td>
-                          <td className="border !border-black p-1 text-right px-2 !text-black">{dailyAllowance}</td>
-                          <td className="border !border-black p-1 text-right px-2 !text-black">{item.amount > 0 ? item.amount.toLocaleString() : ''}</td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-
-                {/* 最終ページのみ合計・備考を表示 */}
-                {isLastPage && (
-                  <>
-                    {/* Totals Section */}
-                    <div className="flex justify-end mt-0">
-                      <table className="border-collapse border border-t-0 !border-black w-64 text-center !text-black">
-                        <tbody>
-                          <tr>
-                            <td className="border !border-black p-1 bg-gray-100 print:bg-gray-100 w-24 font-medium !text-black">実費合計</td>
-                            <td className="border !border-black p-1 font-bold !text-black">¥{actualCostTotal.toLocaleString()}</td>
+                        return (
+                          <tr key={item.id} className="h-8">
+                            <td className="border !border-black p-1 !text-black">{dateStr}</td>
+                            <td className="border !border-black p-1 text-left px-2 !text-black">{item.description}</td>
+                            <td className="border !border-black p-1 !text-black">{item.transportMethod}</td>
+                            <td className="border !border-black p-1 text-right px-2 !text-black">{transportCost}</td>
+                            <td className="border !border-black p-1 text-right px-2 !text-black">{accomCost}</td>
+                            <td className="border !border-black p-1 text-right px-2 !text-black">{dailyAllowance}</td>
+                            <td className="border !border-black p-1 text-right px-2 !text-black">{item.amount > 0 ? item.amount.toLocaleString() : ''}</td>
                           </tr>
-                          <tr>
-                            <td className="border !border-black p-1 bg-gray-100 print:bg-gray-100 font-medium !text-black">仮払金額</td>
-                            <td className="border !border-black p-1 !text-black">0</td>
-                          </tr>
-                          <tr>
-                            <td className="border !border-black p-1 bg-gray-100 print:bg-gray-100 font-bold !text-black">精算額</td>
-                            <td className="border !border-black p-1 font-bold !text-black">¥{settlementAmount.toLocaleString()}</td>
-                          </tr>
-                        </tbody>
-                      </table>
-                    </div>
+                        );
+                      })}
+                    </tbody>
+                  </table>
 
-                    {/* Remarks */}
-                    <div className="mt-4 border !border-black min-h-[100px] !text-black">
-                      <div className="bg-gray-200 print:bg-gray-200 border-b !border-black p-1 text-center font-bold text-sm !text-black">備　考</div>
-                      <div className="p-2 !text-black"></div>
-                    </div>
-                  </>
-                )}
+                  {/* 最終ページのみ合計・備考を表示 */}
+                  {isLastPage && (
+                    <>
+                      {/* Totals Section */}
+                      <div className="flex justify-end mt-0">
+                        <table className="border-collapse border border-t-0 !border-black w-64 text-center !text-black">
+                          <tbody>
+                            <tr>
+                              <td className="border !border-black p-1 bg-gray-100 print:bg-gray-100 w-24 font-medium !text-black">実費合計</td>
+                              <td className="border !border-black p-1 font-bold !text-black">¥{actualCostTotal.toLocaleString()}</td>
+                            </tr>
+                            <tr>
+                              <td className="border !border-black p-1 bg-gray-100 print:bg-gray-100 font-medium !text-black">仮払金額</td>
+                              <td className="border !border-black p-1 !text-black">0</td>
+                            </tr>
+                            <tr>
+                              <td className="border !border-black p-1 bg-gray-100 print:bg-gray-100 font-bold !text-black">精算額</td>
+                              <td className="border !border-black p-1 font-bold !text-black">¥{settlementAmount.toLocaleString()}</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
 
+                      {/* Remarks */}
+                      <div className="mt-4 border !border-black min-h-[100px] !text-black">
+                        <div className="bg-gray-200 print:bg-gray-200 border-b !border-black p-1 text-center font-bold text-sm !text-black">備　考</div>
+                        <div className="p-2 !text-black"></div>
+                      </div>
+                    </>
+                  )}
+
+                </div>
               </div>
-            </div>
+            </React.Fragment>
           );
         })}
       </div>
