@@ -22,7 +22,8 @@ export const ExpenseReport: React.FC<ExpenseReportProps> = ({ expenses, userProf
   if (sortedExpenses.length > 0) {
     reportMonthStr = sortedExpenses[0].date.slice(0, 7);
   }
-  const pdfFileName = `出張経費精算書_${reportMonthStr}_${userProfile.name}`;
+  const safeReportMonthStr = reportMonthStr.replace(/\//g, '-');
+  const pdfFileName = `出張経費精算書_${safeReportMonthStr}_${userProfile.name}`;
 
   // Set document title for PDF filename (fallback for print)
   useEffect(() => {
@@ -39,26 +40,34 @@ export const ExpenseReport: React.FC<ExpenseReportProps> = ({ expenses, userProf
 
   const handleDownloadPDF = () => {
     setIsGenerating(true);
-    const element = document.getElementById('printable-area');
 
-    // Configure html2pdf options
-    const opt = {
-      margin: 0, // We handle margins via CSS padding in the container
-      filename: `${pdfFileName}.pdf`,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true, logging: false },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-      pagebreak: { mode: ['css', 'legacy'], before: '.html2pdf__page-break' }
-    };
+    // Use setTimeout to ensure React finishes re-rendering before capturing the DOM
+    setTimeout(() => {
+      const element = document.getElementById('printable-area');
+      if (!element) {
+        setIsGenerating(false);
+        return;
+      }
 
-    // Generate and save
-    html2pdf().set(opt).from(element).save().then(() => {
-      setIsGenerating(false);
-    }).catch((err: any) => {
-      console.error('PDF Generation Error:', err);
-      setIsGenerating(false);
-      alert('PDF生成に失敗しました。印刷ボタンをお試しください。');
-    });
+      // Configure html2pdf options
+      const opt = {
+        margin: 0, // We handle margins via CSS padding in the container
+        filename: `${pdfFileName}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, logging: false },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak: { mode: ['css', 'legacy'], before: '.html2pdf__page-break' }
+      };
+
+      // Generate and save
+      html2pdf().set(opt).from(element).save().then(() => {
+        setIsGenerating(false);
+      }).catch((err: any) => {
+        console.error('PDF Generation Error:', err);
+        setIsGenerating(false);
+        alert('PDF生成に失敗しました。印刷ボタンをお試しください。');
+      });
+    }, 100);
   };
 
   // Derive summary info
