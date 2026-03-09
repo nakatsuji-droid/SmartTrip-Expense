@@ -138,6 +138,11 @@ const App: React.FC = () => {
     setExpenses(prev => prev.filter(e => e.id !== id));
   };
 
+  const handleDeleteMultipleExpenses = (ids: string[]) => {
+    const idSet = new Set(ids);
+    setExpenses(prev => prev.filter(e => !idSet.has(e.id)));
+  };
+
   const handleUpdateProfile = (updatedProfile: UserProfile) => {
     setProfiles(prev => prev.map(p => p.id === updatedProfile.id ? updatedProfile : p));
   };
@@ -348,7 +353,7 @@ const App: React.FC = () => {
               </div>
               <span className="text-sm text-slate-500">{userExpenses.length} 件</span>
             </div>
-            <ExpenseList expenses={userExpenses} onDelete={handleDeleteExpense} />
+            <ExpenseList expenses={userExpenses} onDelete={handleDeleteExpense} onDeleteMultiple={handleDeleteMultipleExpenses} />
           </div>
         </div>
       </main>
