@@ -1,7 +1,7 @@
 
 import { AiParsedExpense, ExpenseCategory, UserProfile } from "../types";
 
-// Japanese Holidays 2024-2025 (Simple hardcoded list for logic)
+// Japanese Holidays 2024-2026 (Simple hardcoded list for logic)
 const HOLIDAYS = [
   '2024-01-01', '2024-01-08', '2024-02-11', '2024-02-12', '2024-02-23', '2024-03-20',
   '2024-04-29', '2024-05-03', '2024-05-04', '2024-05-05', '2024-05-06', '2024-07-15',
@@ -10,7 +10,11 @@ const HOLIDAYS = [
   '2025-01-01', '2025-01-13', '2025-02-11', '2025-02-23', '2025-02-24', '2025-03-20',
   '2025-04-29', '2025-05-03', '2025-05-04', '2025-05-05', '2025-05-06', '2025-07-21',
   '2025-08-11', '2025-09-15', '2025-09-23', '2025-10-13', '2025-11-03', '2025-11-23',
-  '2025-11-24'
+  '2025-11-24',
+  '2026-01-01', '2026-01-12', '2026-02-11', '2026-02-23', '2026-03-20',
+  '2026-04-29', '2026-05-03', '2026-05-04', '2026-05-05', '2026-05-06', '2026-07-20',
+  '2026-08-11', '2026-09-21', '2026-09-22', '2026-09-23', '2026-10-12', '2026-11-03',
+  '2026-11-23',
 ];
 
 // Helper: Check if date is valid (not weekend, not holiday)
@@ -59,11 +63,18 @@ export const parseExpenseText = async (textInput: string): Promise<AiParsedExpen
   return {};
 };
 
+// Type for specific date entry with optional overrides
+export interface GenDateEntry {
+  date: string;
+  type: 'auto' | 'accommodation' | 'allowance';
+  destination: string; // empty = random from profile
+}
+
 // Main Logic: Algorithmic Generation
 export const generateExpensesFromTotal = async (
   totalAmount: number, 
   yearMonth: string,
-  specificDates: string[],
+  specificDateEntries: GenDateEntry[],
   profile: UserProfile,
   accommodationCount?: number
 ): Promise<AiParsedExpense[]> => {
@@ -71,81 +82,88 @@ export const generateExpensesFromTotal = async (
   // 1. Calculate optimal counts (Knapsack-like problem but simpler)
   const accomCost = profile.accommodationCost;
   const allowanceCost = profile.allowanceCost;
-  
+
+  // Pre-calculate cost from fixed (non-auto) specific dates
+  const fixedEntries = specificDateEntries.filter(e => e.type !== 'auto');
+  const autoEntries = specificDateEntries.filter(e => e.type === 'auto');
+
+  const fixedAccomCount = fixedEntries.filter(e => e.type === 'accommodation').length;
+  const fixedAllowanceCount = fixedEntries.filter(e => e.type === 'allowance').length;
+  const fixedCost = fixedAccomCount * accomCost + fixedAllowanceCount * allowanceCost;
+
+  const remainingAmount = totalAmount - fixedCost;
+
   let bestAccomCount = 0;
   let bestAllowanceCount = 0;
-  let minDiff = Number.MAX_SAFE_INTEGER;
 
-  // If accommodation count is fixed
-  if (accommodationCount !== undefined && accommodationCount !== null) {
-    const fixedAccomCost = accommodationCount * accomCost;
-    const remainder = totalAmount - fixedAccomCost;
-    if (remainder >= 0) {
+  if (remainingAmount >= 0) {
+    // If accommodation count is provided, it refers to ADDITIONAL (auto) accommodations
+    if (accommodationCount !== undefined && accommodationCount !== null) {
+      const additionalAccomCost = accommodationCount * accomCost;
+      const rem2 = remainingAmount - additionalAccomCost;
       bestAccomCount = accommodationCount;
-      bestAllowanceCount = Math.round(remainder / allowanceCost);
+      bestAllowanceCount = rem2 >= 0 ? Math.round(rem2 / allowanceCost) : 0;
     } else {
-      // If fixed accommodation already exceeds total, just set 0 allowance
-      bestAccomCount = accommodationCount;
-      bestAllowanceCount = 0;
-    }
-  } else {
-    // Iterate to find best combination
-    // Max possible accommodations
-    const maxAccom = Math.floor(totalAmount / accomCost);
-    
-    for (let i = 0; i <= maxAccom; i++) {
-      const currentAccomCost = i * accomCost;
-      const remainder = totalAmount - currentAccomCost;
-      const j = Math.round(remainder / allowanceCost); // Best fit allowance count
-      
-      const currentTotal = currentAccomCost + (j * allowanceCost);
-      const diff = Math.abs(totalAmount - currentTotal);
-      
-      if (diff < minDiff) {
-        minDiff = diff;
-        bestAccomCount = i;
-        bestAllowanceCount = j;
+      // Iterate to find best combination for remaining amount
+      const maxAccom = Math.floor(remainingAmount / accomCost);
+      let minDiff = Number.MAX_SAFE_INTEGER;
+
+      for (let i = 0; i <= maxAccom; i++) {
+        const currentAccomCost = i * accomCost;
+        const rem2 = remainingAmount - currentAccomCost;
+        const j = Math.round(rem2 / allowanceCost);
+        
+        const currentTotal = currentAccomCost + (j * allowanceCost);
+        const diff = Math.abs(remainingAmount - currentTotal);
+        
+        if (diff < minDiff) {
+          minDiff = diff;
+          bestAccomCount = i;
+          bestAllowanceCount = j;
+        }
       }
     }
   }
 
-  const totalItemsNeeded = bestAccomCount + bestAllowanceCount;
+  const totalItemsNeeded = fixedEntries.length + bestAccomCount + bestAllowanceCount;
+  const specificDates = specificDateEntries.map(e => e.date);
   
-  // 2. Prepare Dates
-  // We strictly need to cover specificDates first.
-  let finalDates = [...specificDates];
+  // 2. Prepare additional dates (for auto entries + extra needed)
+  let additionalDates: string[] = autoEntries.map(e => e.date);
   
-  // If we generated fewer items than specific dates, we must increase allowance count to fill dates
-  if (totalItemsNeeded < finalDates.length) {
-    const gap = finalDates.length - totalItemsNeeded;
-    // Prefer adding allowances as they are usually for "just visiting"
-    bestAllowanceCount += gap;
-  }
+  // If we need even more dates than auto-specified ones
+  const extraNeeded = (bestAccomCount + bestAllowanceCount) - additionalDates.length;
   
-  // If we need more dates than specific ones
-  const neededAdditional = (bestAccomCount + bestAllowanceCount) - finalDates.length;
-  
-  if (neededAdditional > 0) {
-    const availableDays = getValidDaysInMonth(yearMonth, finalDates);
+  if (extraNeeded > 0) {
+    const availableDays = getValidDaysInMonth(yearMonth, specificDates);
     const shuffledDays = shuffleArray(availableDays);
-    const pickedDays = shuffledDays.slice(0, neededAdditional);
-    finalDates = [...finalDates, ...pickedDays];
+    const pickedDays = shuffledDays.slice(0, extraNeeded);
+    additionalDates = [...additionalDates, ...pickedDays];
   }
 
-  // Sort dates
-  finalDates.sort();
+  // Sort additional dates
+  additionalDates.sort();
 
-  // 3. Assign Categories to Dates
-  // We need to assign `bestAccomCount` ACCOMMODATION items and rest ALLOWANCE
-  // Logic: Shuffle the dates, pick N for accommodation, rest for allowance.
-  // HOWEVER, if specific dates implies a trip, maybe we shouldn't shuffle blindly?
-  // For simplicity and "randomness" requested, we shuffle assignment.
-  
+  // 3. Assign Categories to auto/additional dates
   const items: AiParsedExpense[] = [];
-  const datesForAssignment = shuffleArray([...finalDates]);
-  
-  for (let i = 0; i < finalDates.length; i++) {
-    const date = datesForAssignment[i];
+
+  // Add fixed entries first (with their specified category and destination)
+  for (const entry of fixedEntries) {
+    const dest = entry.destination.trim() || (profile.destinations[Math.floor(Math.random() * profile.destinations.length)] || '出張先');
+    items.push({
+      date: entry.date,
+      amount: entry.type === 'accommodation' ? accomCost : allowanceCost,
+      category: entry.type === 'accommodation' ? ExpenseCategory.ACCOMMODATION : ExpenseCategory.ALLOWANCE,
+      description: dest,
+      transportMethod: '車',
+    });
+  }
+
+  // Add auto/additional entries with optimal split
+  const shuffledAdditional = shuffleArray([...additionalDates]);
+
+  for (let i = 0; i < shuffledAdditional.length; i++) {
+    const date = shuffledAdditional[i];
     let category: ExpenseCategory;
     let amount: number;
 
@@ -157,15 +175,16 @@ export const generateExpensesFromTotal = async (
       amount = allowanceCost;
     }
 
-    // Pick a random destination
-    const randomDest = profile.destinations[Math.floor(Math.random() * profile.destinations.length)] || '出張先';
+    // Check if this date has an auto-entry with a destination specified
+    const autoEntry = autoEntries.find(e => e.date === date);
+    const dest = (autoEntry?.destination.trim()) || (profile.destinations[Math.floor(Math.random() * profile.destinations.length)] || '出張先');
 
     items.push({
       date: date,
       amount: amount,
       category: category,
-      description: randomDest,
-      transportMethod: '車'
+      description: dest,
+      transportMethod: '車',
     });
   }
 
