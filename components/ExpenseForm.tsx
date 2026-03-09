@@ -141,8 +141,8 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({ onAddExpense, userProf
         <button
           onClick={() => setActiveTab('manual')}
           className={`flex-1 py-4 text-sm font-medium flex items-center justify-center gap-2 transition-colors ${activeTab === 'manual'
-              ? 'text-indigo-600 border-b-2 border-indigo-600 bg-slate-50'
-              : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+            ? 'text-indigo-600 border-b-2 border-indigo-600 bg-slate-50'
+            : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
             }`}
         >
           <PenTool size={16} />
@@ -151,8 +151,8 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({ onAddExpense, userProf
         <button
           onClick={() => setActiveTab('generate')}
           className={`flex-1 py-4 text-sm font-medium flex items-center justify-center gap-2 transition-colors ${activeTab === 'generate'
-              ? 'text-indigo-600 border-b-2 border-indigo-600 bg-slate-50'
-              : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+            ? 'text-indigo-600 border-b-2 border-indigo-600 bg-slate-50'
+            : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
             }`}
         >
           <Calculator size={16} />
@@ -307,8 +307,8 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({ onAddExpense, userProf
                           >
                             <span className="text-sm font-medium">{entry.date}</span>
                             <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${entry.type === 'accommodation' ? 'bg-blue-200 text-blue-900' :
-                                entry.type === 'allowance' ? 'bg-emerald-200 text-emerald-900' :
-                                  'bg-slate-200 text-slate-700'
+                              entry.type === 'allowance' ? 'bg-emerald-200 text-emerald-900' :
+                                'bg-slate-200 text-slate-700'
                               }`}>
                               {TYPE_LABELS[entry.type]}
                             </span>
@@ -345,10 +345,10 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({ onAddExpense, userProf
                                     type="button"
                                     onClick={() => handleUpdateEntry(entry.date, { type: t })}
                                     className={`flex-1 py-1.5 text-xs rounded-md font-medium border transition-colors ${entry.type === t
-                                        ? t === 'accommodation' ? 'bg-blue-500 text-white border-blue-500'
-                                          : t === 'allowance' ? 'bg-emerald-500 text-white border-emerald-500'
-                                            : 'bg-slate-500 text-white border-slate-500'
-                                        : 'bg-white/60 text-current border-black/15 hover:bg-white/80'
+                                      ? t === 'accommodation' ? 'bg-blue-500 text-white border-blue-500'
+                                        : t === 'allowance' ? 'bg-emerald-500 text-white border-emerald-500'
+                                          : 'bg-slate-500 text-white border-slate-500'
+                                      : 'bg-white/60 text-current border-black/15 hover:bg-white/80'
                                       }`}
                                   >
                                     {t === 'accommodation' && '🏨 '}
@@ -434,7 +434,7 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({ onAddExpense, userProf
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1 flex items-center gap-1">
                     <Hotel size={14} />
-                    追加の宿泊回数 (任意)
+                    合計の宿泊回数 (任意)
                   </label>
                   <div className="relative rounded-md shadow-sm">
                     <input
@@ -450,7 +450,7 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({ onAddExpense, userProf
                       <span className="text-slate-500 sm:text-sm">回</span>
                     </div>
                   </div>
-                  <p className="mt-1 text-xs text-slate-400">自動割り当て分のみに適用</p>
+                  <p className="mt-1 text-xs text-slate-400">固定指定分を含む月全体の宿泊合計数</p>
                 </div>
               </div>
 

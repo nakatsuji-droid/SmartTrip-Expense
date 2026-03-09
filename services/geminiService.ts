@@ -72,13 +72,13 @@ export interface GenDateEntry {
 
 // Main Logic: Algorithmic Generation
 export const generateExpensesFromTotal = async (
-  totalAmount: number, 
+  totalAmount: number,
   yearMonth: string,
   specificDateEntries: GenDateEntry[],
   profile: UserProfile,
   accommodationCount?: number
 ): Promise<AiParsedExpense[]> => {
-  
+
   // 1. Calculate optimal counts (Knapsack-like problem but simpler)
   const accomCost = profile.accommodationCost;
   const allowanceCost = profile.allowanceCost;
@@ -97,11 +97,13 @@ export const generateExpensesFromTotal = async (
   let bestAllowanceCount = 0;
 
   if (remainingAmount >= 0) {
-    // If accommodation count is provided, it refers to ADDITIONAL (auto) accommodations
+    // If accommodation count is provided, it refers to TOTAL accommodations (fixed + auto)
     if (accommodationCount !== undefined && accommodationCount !== null) {
-      const additionalAccomCost = accommodationCount * accomCost;
+      // Auto accommodation = total - already fixed
+      const autoAccomCount = Math.max(0, accommodationCount - fixedAccomCount);
+      const additionalAccomCost = autoAccomCount * accomCost;
       const rem2 = remainingAmount - additionalAccomCost;
-      bestAccomCount = accommodationCount;
+      bestAccomCount = autoAccomCount;
       bestAllowanceCount = rem2 >= 0 ? Math.round(rem2 / allowanceCost) : 0;
     } else {
       // Iterate to find best combination for remaining amount
@@ -112,10 +114,10 @@ export const generateExpensesFromTotal = async (
         const currentAccomCost = i * accomCost;
         const rem2 = remainingAmount - currentAccomCost;
         const j = Math.round(rem2 / allowanceCost);
-        
+
         const currentTotal = currentAccomCost + (j * allowanceCost);
         const diff = Math.abs(remainingAmount - currentTotal);
-        
+
         if (diff < minDiff) {
           minDiff = diff;
           bestAccomCount = i;
@@ -127,13 +129,13 @@ export const generateExpensesFromTotal = async (
 
   const totalItemsNeeded = fixedEntries.length + bestAccomCount + bestAllowanceCount;
   const specificDates = specificDateEntries.map(e => e.date);
-  
+
   // 2. Prepare additional dates (for auto entries + extra needed)
   let additionalDates: string[] = autoEntries.map(e => e.date);
-  
+
   // If we need even more dates than auto-specified ones
   const extraNeeded = (bestAccomCount + bestAllowanceCount) - additionalDates.length;
-  
+
   if (extraNeeded > 0) {
     const availableDays = getValidDaysInMonth(yearMonth, specificDates);
     const shuffledDays = shuffleArray(availableDays);
