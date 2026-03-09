@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { UserProfile } from '../types';
-import { X, Save, User, MapPin, Coins, Hotel, Trash2 } from 'lucide-react';
+import { X, Save, User, MapPin, Coins, Hotel, Trash2, Download, Upload } from 'lucide-react';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -8,9 +8,11 @@ interface SettingsModalProps {
   profile: UserProfile;
   onSave: (newProfile: UserProfile) => void;
   onDelete?: () => void;
+  onExport: () => void;
+  onImport: () => void;
 }
 
-export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, profile, onSave, onDelete }) => {
+export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, profile, onSave, onDelete, onExport, onImport }) => {
   const [formData, setFormData] = useState<UserProfile>(profile);
   const [destinationsStr, setDestinationsStr] = useState('');
 
@@ -51,7 +53,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, p
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          
+
           {/* Name */}
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">氏名 (申請者名)</label>
@@ -59,7 +61,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, p
               type="text"
               required
               value={formData.name}
-              onChange={(e) => setFormData({...formData, name: e.target.value})}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               className="w-full rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border"
               placeholder="山田 太郎"
             />
@@ -79,12 +81,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, p
                   required
                   min="0"
                   value={formData.allowanceCost}
-                  onChange={(e) => setFormData({...formData, allowanceCost: parseInt(e.target.value) || 0})}
+                  onChange={(e) => setFormData({ ...formData, allowanceCost: parseInt(e.target.value) || 0 })}
                   className="w-full rounded-md border-slate-300 pl-7 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border"
                 />
               </div>
             </div>
-            
+
             {/* Accommodation */}
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1 flex items-center gap-1">
@@ -98,7 +100,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, p
                   required
                   min="0"
                   value={formData.accommodationCost}
-                  onChange={(e) => setFormData({...formData, accommodationCost: parseInt(e.target.value) || 0})}
+                  onChange={(e) => setFormData({ ...formData, accommodationCost: parseInt(e.target.value) || 0 })}
                   className="w-full rounded-md border-slate-300 pl-7 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 border"
                 />
               </div>
@@ -119,40 +121,68 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, p
               placeholder="例: セントレア空港、東京本社、大阪支店"
             />
             <p className="text-xs text-slate-500 mt-1">
-              カンマ(,) または 読点(、) で区切って入力。<br/>
+              カンマ(,) または 読点(、) で区切って入力。<br />
               ※ 手動入力した出張先もここに自動追加されます。
             </p>
           </div>
 
           <div className="flex justify-between pt-4 border-t border-slate-100">
-             <div>
-               {onDelete && (
-                 <button
-                   type="button"
-                   onClick={onDelete}
-                   className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-red-600 bg-red-50 border border-red-100 rounded-md hover:bg-red-100 transition-colors"
-                 >
-                   <Trash2 size={16} />
-                   このユーザーを削除
-                 </button>
-               )}
-             </div>
-             <div className="flex gap-2">
+            <div>
+              {onDelete && (
                 <button
                   type="button"
-                  onClick={onClose}
-                  className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50"
+                  onClick={onDelete}
+                  className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-red-600 bg-red-50 border border-red-100 rounded-md hover:bg-red-100 transition-colors"
                 >
-                  キャンセル
+                  <Trash2 size={16} />
+                  このユーザーを削除
                 </button>
-                <button
-                  type="submit"
-                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-700 shadow-sm"
-                >
-                  <Save size={16} />
-                  保存する
-                </button>
-             </div>
+              )}
+            </div>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50"
+              >
+                キャンセル
+              </button>
+              <button
+                type="submit"
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-700 shadow-sm"
+              >
+                <Save size={16} />
+                保存する
+              </button>
+            </div>
+          </div>
+
+          {/* Backup Section */}
+          <div className="pt-4 border-t border-slate-100">
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">データのバックアップ</p>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={onExport}
+                className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-md hover:bg-emerald-100 transition-colors"
+              >
+                <Download size={15} />
+                エクスポート (.json)
+              </button>
+              <button
+                type="button"
+                onClick={onImport}
+                className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded-md hover:bg-amber-100 transition-colors"
+              >
+                <Upload size={15} />
+                インポート (.json)
+              </button>
+            </div>
+            <p className="text-xs text-slate-400 mt-1.5 leading-relaxed">
+              💡 <strong>自動読込：</strong>エクスポートしたJSONを<br />
+              <code className="bg-slate-100 px-1 rounded text-xs">public/smarttrip_data.json</code> として保存すると、<br />
+              次回起動時（localStorageが空のとき）に自動でデータを読み込みます。
+            </p>
           </div>
         </form>
       </div>
